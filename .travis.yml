@@ -1,5 +1,5 @@
 language: go
-go_import_path: github.com/heptiolabs/healthcheck
+go_import_path: github.com/troian/healthcheck
 go:
   - 1.9.x
 
