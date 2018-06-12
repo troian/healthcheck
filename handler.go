@@ -47,16 +47,53 @@ func (s *basicHandler) ReadyEndpoint(w http.ResponseWriter, r *http.Request) {
 	s.handle(w, r, s.readinessChecks, s.livenessChecks)
 }
 
-func (s *basicHandler) AddLivenessCheck(name string, check Check) {
+func (s *basicHandler) AddLivenessCheck(name string, check Check) error {
 	s.checksMutex.Lock()
 	defer s.checksMutex.Unlock()
+	if _, ok := s.livenessChecks[name]; ok {
+		return ErrAlreadyExists
+	}
+
 	s.livenessChecks[name] = check
+
+	return nil
 }
 
-func (s *basicHandler) AddReadinessCheck(name string, check Check) {
+func (s *basicHandler) AddReadinessCheck(name string, check Check) error {
 	s.checksMutex.Lock()
 	defer s.checksMutex.Unlock()
+
+	if _, ok := s.readinessChecks[name]; ok {
+		return ErrAlreadyExists
+	}
+
 	s.readinessChecks[name] = check
+
+	return nil
+}
+
+func (s *basicHandler) RemoveLivenessCheck(name string) error {
+	s.checksMutex.Lock()
+	defer s.checksMutex.Unlock()
+
+	if _, ok := s.livenessChecks[name]; !ok {
+		return ErrNotFound
+	}
+	delete(s.livenessChecks, name)
+
+	return nil
+}
+
+func (s *basicHandler) RemoveReadinessCheck(name string) error {
+	s.checksMutex.Lock()
+	defer s.checksMutex.Unlock()
+
+	if _, ok := s.readinessChecks[name]; !ok {
+		return ErrNotFound
+	}
+	delete(s.readinessChecks, name)
+
+	return nil
 }
 
 func (s *basicHandler) collectChecks(checks map[string]Check, resultsOut map[string]string, statusOut *int) {

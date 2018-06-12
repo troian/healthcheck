@@ -16,10 +16,49 @@ package healthcheck
 
 import (
 	"net/http"
+	"github.com/pkg/errors"
+)
+
+var (
+	ErrAlreadyExists = errors.New("healthcheck: already exists")
+	ErrNotFound = errors.New("healthcheck: not found")
 )
 
 // Check is a health/readiness check.
 type Check func() error
+
+type Config struct {
+	Timeout int `json:"timeout" yaml:"timeout" mapstructure:"timeout"`
+}
+
+type Checks interface {
+	// AddLivenessCheck adds a check that indicates that this instance of the
+	// application should be destroyed or restarted. A failed liveness check
+	// indicates that this instance is unhealthy, not some upstream dependency.
+	// Every liveness check is also included as a readiness check.
+	AddLivenessCheck(name string, check Check) error
+
+	// AddReadinessCheck adds a check that indicates that this instance of the
+	// application is currently unable to serve requests because of an upstream
+	// or some transient failure. If a readiness check fails, this instance
+	// should no longer receiver requests, but should not be restarted or
+	// destroyed.
+	AddReadinessCheck(name string, check Check) error
+
+	RemoveLivenessCheck(name string) error
+
+	RemoveReadinessCheck(name string) error
+}
+
+type Endpoints interface {
+	// LiveEndpoint is the HTTP handler for just the /live endpoint, which is
+	// useful if you need to attach it into your own HTTP handler tree.
+	LiveEndpoint(http.ResponseWriter, *http.Request)
+
+	// ReadyEndpoint is the HTTP handler for just the /ready endpoint, which is
+	// useful if you need to attach it into your own HTTP handler tree.
+	ReadyEndpoint(http.ResponseWriter, *http.Request)
+}
 
 // Handler is an http.Handler with additional methods that register health and
 // readiness checks. It handles handle "/live" and "/ready" HTTP
@@ -28,25 +67,6 @@ type Handler interface {
 	// The Handler is an http.Handler, so it can be exposed directly and handle
 	// /live and /ready endpoints.
 	http.Handler
-
-	// AddLivenessCheck adds a check that indicates that this instance of the
-	// application should be destroyed or restarted. A failed liveness check
-	// indicates that this instance is unhealthy, not some upstream dependency.
-	// Every liveness check is also included as a readiness check.
-	AddLivenessCheck(name string, check Check)
-
-	// AddReadinessCheck adds a check that indicates that this instance of the
-	// application is currently unable to serve requests because of an upstream
-	// or some transient failure. If a readiness check fails, this instance
-	// should no longer receiver requests, but should not be restarted or
-	// destroyed.
-	AddReadinessCheck(name string, check Check)
-
-	// LiveEndpoint is the HTTP handler for just the /live endpoint, which is
-	// useful if you need to attach it into your own HTTP handler tree.
-	LiveEndpoint(http.ResponseWriter, *http.Request)
-
-	// ReadyEndpoint is the HTTP handler for just the /ready endpoint, which is
-	// useful if you need to attach it into your own HTTP handler tree.
-	ReadyEndpoint(http.ResponseWriter, *http.Request)
+	Checks
+	Endpoints
 }

@@ -36,12 +36,20 @@ func NewMetricsHandler(registry prometheus.Registerer, namespace string) Handler
 	}
 }
 
-func (h *metricsHandler) AddLivenessCheck(name string, check Check) {
-	h.handler.AddLivenessCheck(name, h.wrap(name, check))
+func (h *metricsHandler) AddLivenessCheck(name string, check Check) error {
+	return h.handler.AddLivenessCheck(name, h.wrap(name, check))
 }
 
-func (h *metricsHandler) AddReadinessCheck(name string, check Check) {
-	h.handler.AddReadinessCheck(name, h.wrap(name, check))
+func (h *metricsHandler) AddReadinessCheck(name string, check Check) error {
+	return h.handler.AddReadinessCheck(name, h.wrap(name, check))
+}
+
+func (h *metricsHandler) RemoveLivenessCheck(name string) error {
+	return h.handler.RemoveLivenessCheck(name)
+}
+
+func (h *metricsHandler) RemoveReadinessCheck(name string) error {
+	return h.handler.RemoveReadinessCheck(name)
 }
 
 func (h *metricsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

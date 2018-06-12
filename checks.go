@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"runtime"
 	"time"
+	"github.com/streadway/amqp"
 )
 
 // TCPDialCheck returns a Check that checks TCP connectivity to the provided
@@ -33,6 +34,18 @@ func TCPDialCheck(addr string, timeout time.Duration) Check {
 			return err
 		}
 		return conn.Close()
+	}
+}
+
+func AMQPDialCheck(uri string) Check {
+	return func() error {
+		conn, err := amqp.Dial(uri)
+		if err != nil {
+			return err
+		}
+
+		conn.Close()
+		return nil
 	}
 }
 
