@@ -21,14 +21,16 @@ import (
 
 var (
 	ErrAlreadyExists = errors.New("healthcheck: already exists")
-	ErrNotFound = errors.New("healthcheck: not found")
+	ErrNotFound      = errors.New("healthcheck: not found")
 )
 
 // Check is a health/readiness check.
 type Check func() error
 
 type Config struct {
-	Timeout int `json:"timeout" yaml:"timeout" mapstructure:"timeout"`
+	Timeout       int    `json:"timeout" yaml:"timeout" mapstructure:"timeout"`
+	LivenessName  string `json:"livenessName" yaml:"livenessName" mapstructure:"livenessName"`
+	ReadinessName string `json:"readinessName" yaml:"readinessName" mapstructure:"readinessName"`
 }
 
 type Checks interface {
