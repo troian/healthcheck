@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"runtime"
 	"time"
+
 	"github.com/streadway/amqp"
 )
 
