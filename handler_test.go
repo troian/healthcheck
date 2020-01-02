@@ -126,13 +126,13 @@ func TestNewHandler(t *testing.T) {
 			h := NewHandler()
 
 			if !tt.live {
-				h.AddLivenessCheck("test-liveness-check", func() error {
+				_ = h.AddLivenessCheck("test-liveness-check", func() error {
 					return errors.New("failed liveness check")
 				})
 			}
 
 			if !tt.ready {
-				h.AddReadinessCheck("test-readiness-check", func() error {
+				_ = h.AddReadinessCheck("test-readiness-check", func() error {
 					return errors.New("failed readiness check")
 				})
 			}

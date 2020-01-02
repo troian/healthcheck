@@ -45,7 +45,7 @@ func AMQPDialCheck(uri string) Check {
 			return err
 		}
 
-		conn.Close()
+		_ = conn.Close()
 		return nil
 	}
 }
@@ -66,7 +66,8 @@ func HTTPGetCheck(url string, timeout time.Duration) Check {
 		if err != nil {
 			return err
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
+
 		if resp.StatusCode != 200 {
 			return fmt.Errorf("returned status %d", resp.StatusCode)
 		}

@@ -16,6 +16,7 @@ package healthcheck
 
 import (
 	"net/http"
+
 	"github.com/pkg/errors"
 )
 
