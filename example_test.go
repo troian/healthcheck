@@ -181,6 +181,7 @@ func Example_metrics() {
 	// example_healthcheck_status{check="successful-check"} 0
 }
 
+// nolint unparam
 func dumpRequest(handler http.Handler, method string, path string) string {
 	req, err := http.NewRequest(method, path, nil)
 	if err != nil {
