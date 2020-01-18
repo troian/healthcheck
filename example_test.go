@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	sqlmock "github.com/DATA-DOG/go-sqlmock"
+	"github.com/DATA-DOG/go-sqlmock"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -37,13 +37,13 @@ func Example() {
 	// If this fails we don't want to receive requests, but we shouldn't be
 	// restarted or rescheduled.
 	upstreamHost := "upstream.example.com"
-	health.AddReadinessCheck(
+	_ = health.AddReadinessCheck(
 		"upstream-dep-dns",
 		DNSResolveCheck(upstreamHost, 50*time.Millisecond))
 
 	// Add a liveness check to detect Goroutine leaks. If this fails we want
 	// to be restarted/rescheduled.
-	health.AddLivenessCheck("goroutine-threshold", GoroutineCountCheck(100))
+	_ = health.AddLivenessCheck("goroutine-threshold", GoroutineCountCheck(100))
 
 	// Serve http://0.0.0.0:8080/live and http://0.0.0.0:8080/ready endpoints.
 	// go http.ListenAndServe("0.0.0.0:8080", health)
@@ -61,15 +61,14 @@ func Example() {
 
 func Example_database() {
 	// Connect to a database/sql database
-	var database *sql.DB
-	database = connectToDatabase()
+	database := connectToDatabase()
 
 	// Create a Handler that we can use to register liveness and readiness checks.
 	health := NewHandler()
 
 	// Add a readiness check to we don't receive requests unless we can reach
 	// the database with a ping in <1 second.
-	health.AddReadinessCheck("database", DatabasePingCheck(database, 1*time.Second))
+	_ = health.AddReadinessCheck("database", DatabasePingCheck(database, 1*time.Second))
 
 	// Serve http://0.0.0.0:8080/live and http://0.0.0.0:8080/ready endpoints.
 	// go http.ListenAndServe("0.0.0.0:8080", health)
@@ -98,18 +97,18 @@ func Example_advanced() {
 	// Async is useful whenever a check is expensive (especially if it causes
 	// load on upstream services).
 	upstreamAddr := "upstream.example.com:5432"
-	health.AddReadinessCheck(
+	_ = health.AddReadinessCheck(
 		"upstream-dep-tcp",
 		Async(TCPDialCheck(upstreamAddr, 50*time.Millisecond), 10*time.Second))
 
 	// Add a readiness check against the health of an upstream HTTP dependency
 	upstreamURL := "http://upstream-svc.example.com:8080/healthy"
-	health.AddReadinessCheck(
+	_ = health.AddReadinessCheck(
 		"upstream-dep-http",
 		HTTPGetCheck(upstreamURL, 500*time.Millisecond))
 
 	// Implement a custom check with a 50 millisecond timeout.
-	health.AddLivenessCheck("custom-check-with-timeout", Timeout(func() error {
+	_ = health.AddLivenessCheck("custom-check-with-timeout", Timeout(func() error {
 		// Simulate some work that could take a long time
 		time.Sleep(time.Millisecond * 100)
 		return nil
@@ -119,7 +118,7 @@ func Example_advanced() {
 	// our main application mux.
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello, world!"))
+		_, _ = w.Write([]byte("Hello, world!"))
 	})
 	mux.HandleFunc("/healthz", health.ReadyEndpoint)
 
@@ -146,12 +145,12 @@ func Example_metrics() {
 	health := NewMetricsHandler(registry, "example")
 
 	// Add a simple readiness check that always fails.
-	health.AddReadinessCheck("failing-check", func() error {
+	_ = health.AddReadinessCheck("failing-check", func() error {
 		return fmt.Errorf("example failure")
 	})
 
 	// Add a liveness check that always succeeds
-	health.AddLivenessCheck("successful-check", func() error {
+	_ = health.AddLivenessCheck("successful-check", func() error {
 		return nil
 	})
 
@@ -182,6 +181,7 @@ func Example_metrics() {
 	// example_healthcheck_status{check="successful-check"} 0
 }
 
+// nolint unparam
 func dumpRequest(handler http.Handler, method string, path string) string {
 	req, err := http.NewRequest(method, path, nil)
 	if err != nil {

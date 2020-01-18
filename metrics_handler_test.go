@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -31,18 +32,18 @@ func TestNewMetricsHandler(t *testing.T) {
 	handler := NewMetricsHandler(prometheus.DefaultRegisterer, "test")
 
 	for _, check := range []string{"aaa", "bbb", "ccc"} {
-		handler.AddLivenessCheck(check, func() error {
+		_ = handler.AddLivenessCheck(check, func() error {
 			return nil
 		})
 	}
 
 	for _, check := range []string{"ddd", "eee", "fff"} {
-		handler.AddLivenessCheck(check, func() error {
+		_ = handler.AddLivenessCheck(check, func() error {
 			return fmt.Errorf("failing health check %q", check)
 		})
 	}
 
-	metricsHandler := prometheus.Handler()
+	metricsHandler := promhttp.Handler()
 	req, err := http.NewRequest("GET", "/metrics", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -51,7 +52,8 @@ func TestNewMetricsHandler(t *testing.T) {
 	metricsHandler.ServeHTTP(rr, req)
 
 	lines := strings.Split(rr.Body.String(), "\n")
-	relevantLines := []string{}
+	var relevantLines []string
+
 	for _, line := range lines {
 		if strings.HasPrefix(line, "test_healthcheck_status") {
 			relevantLines = append(relevantLines, line)
@@ -74,7 +76,7 @@ test_healthcheck_status{check="fff"} 1
 
 func TestNewMetricsHandlerEndpoints(t *testing.T) {
 	handler := NewMetricsHandler(prometheus.NewRegistry(), "test")
-	handler.AddReadinessCheck("fail", func() error {
+	_ = handler.AddReadinessCheck("fail", func() error {
 		return fmt.Errorf("failing readiness check")
 	})
 
