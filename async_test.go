@@ -16,6 +16,7 @@ package healthcheck
 
 import (
 	"context"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -45,9 +46,10 @@ func TestAsyncWithContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// start an async check that counts how many times it was called
-	calls := 0
+	var calls uint64
+
 	AsyncWithContext(ctx, func() error {
-		calls++
+		atomic.AddUint64(&calls, 1)
 		time.Sleep(1 * time.Millisecond)
 		return nil
 	}, 10*time.Millisecond)
@@ -59,5 +61,5 @@ func TestAsyncWithContext(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// make sure the check was only executed roughly once
-	assert.InDelta(t, calls, 1, 1)
+	assert.InDelta(t, atomic.LoadUint64(&calls), 1, 1)
 }
