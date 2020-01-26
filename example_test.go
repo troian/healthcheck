@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -59,7 +58,7 @@ func Example() {
 	// {}
 }
 
-func Example_database() {
+func ExampleDatabase() {
 	// Connect to a database/sql database
 	database := connectToDatabase()
 
@@ -86,7 +85,7 @@ func Example_database() {
 	// }
 }
 
-func Example_advanced() {
+func ExampleAdvanced() {
 	// Create a Handler that we can use to register liveness and readiness checks.
 	health := NewHandler()
 
@@ -136,7 +135,7 @@ func Example_advanced() {
 	// {}
 }
 
-func Example_metrics() {
+func ExampleMetrics() {
 	// Create a new Prometheus registry (you'd likely already have one of these).
 	registry := prometheus.NewRegistry()
 
@@ -172,8 +171,8 @@ func Example_metrics() {
 
 	// Output:
 	// HTTP/1.1 200 OK
-	// Content-Length: 245
-	// Content-Type: text/plain; version=0.0.4
+	// Connection: close
+	// Content-Type: text/plain; version=0.0.4; charset=utf-8
 	//
 	// # HELP example_healthcheck_status Current check status (0 indicates success, 1 indicates failure)
 	// # TYPE example_healthcheck_status gauge
@@ -183,16 +182,20 @@ func Example_metrics() {
 
 // nolint unparam
 func dumpRequest(handler http.Handler, method string, path string) string {
-	req, err := http.NewRequest(method, path, nil)
-	if err != nil {
+	var req *http.Request
+	var err error
+	if req, err = http.NewRequest(method, path, nil); err != nil {
 		panic(err)
 	}
+
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
-	dump, err := httputil.DumpResponse(rr.Result(), true)
-	if err != nil {
+
+	var dump []byte
+	if dump, err = httputil.DumpResponse(rr.Result(), true); err != nil {
 		panic(err)
 	}
+
 	return strings.Replace(string(dump), "\r\n", "\n", -1)
 }
 
