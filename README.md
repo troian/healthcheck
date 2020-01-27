@@ -1,5 +1,5 @@
 # healthcheck
-[![Build Status](https://travis-ci.org/troian/healthcheck.svg?branch=master)](https://travis-ci.org/troian/healthcheck)
+[![Build Status](https://travis-ci.com/troian/healthcheck.svg?branch=master)](https://travis-ci.com/troian/healthcheck)
 [![Go Report Card](https://goreportcard.com/badge/github.com/troian/healthcheck)](https://goreportcard.com/report/github.com/troian/healthcheck)
 [![GoDoc](https://godoc.org/github.com/troian/healthcheck?status.svg)](https://godoc.org/github.com/troian/healthcheck)
 
